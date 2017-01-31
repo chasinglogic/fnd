@@ -1,47 +1,48 @@
-extern crate getopts;
 extern crate regex;
+extern crate clap;
+extern crate walkdir;
 
 use std::env;
-use getopts::Options;
 use std::path::{Path, PathBuf};
+use clap::{Arg, App, AppSettings};
 
-fn find(rgx: String, dirs: Vec<String>) {
-    let mut d: Vec<PathBuf> = dirs.iter().
-        map(|x| PathBuf::from(x)).collect();
-
-    println!("{} {:?}", rgx, d)
-}
+fn find(rgx: String, dirs: Vec<PathBuf>) {}
 
 fn main() {
-    let args: Vec<String> = env::args().collect();     
+    let matches = App::new("fnd, a simpler way to find files")
+        .version("0.1.0")
+        .author("Mathew Robinson <mrobinson@praelatus.io>")
+        .about("Finds files")
+        .setting(AppSettings::TrailingVarArg)
+        .arg(Arg::with_name("regex")
+            .short("rg")
+            .long("regex")
+            .help("Specifies to treat SEARCH as a regex or fuzzy find (default)"))
+        .arg(Arg::with_name("SEARCH")
+            .required(true)
+            .index(1)
+            .help("The term to search for"))
+        .arg(Arg::with_name("DIRS")
+            .multiple(true)
+            .help("Where to search for SEARCH")
+            .default_value("."))
+        .get_matches();
 
-    let mut opts = Options::new();
+    let search = matches.value_of("SEARCH").unwrap();
+    let dirs: Vec<&str> = matches.values_of("DIRS").unwrap().collect();
 
-    opts.optflag("h", "help", "print this help menu");
+    println!("search: {}", search);
+    println!("dirs: {:?}", dirs);
 
-    let matches = match opts.parse(&args[1..]) {
-        Ok(m) => m,
-        Err(f) => panic!(f.to_string()),
-    };
+    let mut d: Vec<PathBuf> = dirs.iter()
+        .map(|x| {
+            if *x == "." {
+                return env::current_dir().unwrap().to_path_buf();
+            }
 
-    if matches.opt_present("h") {
-        println!("Help flag passed");
-        return;
-    }
+            PathBuf::from(x)
+        })
+        .collect();
 
-    if matches.free.is_empty() {
-        println!("You must provide a search regex.");
-        return
-    }
-
-    let rgx = matches.free[0].clone();
-    let dirs = if matches.free.len() > 1 {
-        let mut d = matches.free.clone();
-        d.remove(0);
-        d
-    } else {
-        vec![".".to_string()]
-    };
-
-    find(rgx, dirs)
+    println!("{:?}", d);
 }
