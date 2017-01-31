@@ -1,0 +1,8 @@
+[package]
+name = "fnd"
+version = "0.1.0"
+authors = ["Mathew Robinson <mathew.robinson3114@gmail.com>"]
+
+[dependencies]
+getopts = "0.2.14"
+regex = "0.2.1"
