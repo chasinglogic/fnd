@@ -1,12 +1,46 @@
 extern crate regex;
 extern crate clap;
 extern crate walkdir;
+extern crate ansi_term;
+
+use clap::{Arg, App, AppSettings};
+use regex::Regex;
+use walkdir::WalkDir;
+use ansi_term::Colour::Blue;
 
 use std::env;
-use std::path::{Path, PathBuf};
-use clap::{Arg, App, AppSettings};
+use std::path::PathBuf;
+use std::ops::Deref;
 
-fn find(rgx: String, dirs: Vec<PathBuf>) {}
+fn find(rgx: Regex, dirs: Vec<PathBuf>, paint: bool) {
+    let painter = Blue.paint("$search").to_string();
+    let replacement: &str;
+
+    if paint {
+        replacement = painter.deref()
+    } else {
+        replacement = "$search"
+    }
+
+    let painter = Blue.paint("$search").to_string();
+
+    for d in dirs.iter() {
+        let wkd = WalkDir::new(d);
+
+        for f in wkd.into_iter() {
+            let entry = f.unwrap();
+            let path = entry.path();
+            let s = path.to_str().unwrap();
+
+            if rgx.is_match(s) {
+                let canon_path = std::fs::canonicalize(path).unwrap();
+                let final_s = canon_path.to_str().unwrap();
+                let display = rgx.replace_all(final_s, replacement);
+                println!("{}", display);
+            }
+        }
+    }
+}
 
 fn main() {
     let matches = App::new("fnd, a simpler way to find files")
@@ -14,25 +48,24 @@ fn main() {
         .author("Mathew Robinson <mrobinson@praelatus.io>")
         .about("Finds files")
         .setting(AppSettings::TrailingVarArg)
-        .arg(Arg::with_name("regex")
-            .short("rg")
-            .long("regex")
-            .help("Specifies to treat SEARCH as a regex or fuzzy find (default)"))
-        .arg(Arg::with_name("SEARCH")
+        .arg(Arg::with_name("color")
+            .long("no_color")
+            .short("nc")
+            .help("When specified will not highlight matches with ansi 
+                   term \
+                   color codes this is useful when piping output"))
+        .arg(Arg::with_name("REGEX")
             .required(true)
             .index(1)
-            .help("The term to search for"))
+            .help("The REGEX to search for, defaults to fuzzy finding"))
         .arg(Arg::with_name("DIRS")
             .multiple(true)
             .help("Where to search for SEARCH")
             .default_value("."))
         .get_matches();
 
-    let search = matches.value_of("SEARCH").unwrap();
+    let search = matches.value_of("REGEX").unwrap();
     let dirs: Vec<&str> = matches.values_of("DIRS").unwrap().collect();
-
-    println!("search: {}", search);
-    println!("dirs: {:?}", dirs);
 
     let mut d: Vec<PathBuf> = dirs.iter()
         .map(|x| {
@@ -44,5 +77,15 @@ fn main() {
         })
         .collect();
 
-    println!("{:?}", d);
+    d = d.iter()
+        .map(|x| std::fs::canonicalize(x).unwrap())
+        .collect();
+
+    let mut re = "(?P<search>".to_string();
+    re.push_str(search);
+    re.push_str(")");
+
+    let rgx = Regex::new(&re).unwrap();
+
+    find(rgx, d, !matches.is_present("color"));
 }
