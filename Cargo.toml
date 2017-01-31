@@ -4,5 +4,6 @@ version = "0.1.0"
 authors = ["Mathew Robinson <mathew.robinson3114@gmail.com>"]
 
 [dependencies]
-getopts = "0.2.14"
 regex = "0.2.1"
+walkdir = "1.0.7"
+clap = "2.20.1"
