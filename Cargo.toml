@@ -6,7 +6,7 @@ description = "A simple way to find files."
 homepage = "https://github.com/chasinglogic/fnd"
 repository = "https://github.com/chasinglogic/fnd"
 readme = "README.md"
-keywords = ["cli", "command-line", "find", "search", "files", "utility"]
+keywords = ["cli", "search", "files", "utility"]
 categories = ["command-line-interface", "command-line-utilities", "filesystem"]
 license = "Apache-2.0"
 
