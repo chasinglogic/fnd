@@ -1,4 +1,4 @@
-# fnd []https://img.shields.io/crates/v/fnd.svg
+# fnd [![crates.io](https://img.shields.io/crates/v/fnd.svg)](https://crates.io/crates/fnd)
 A simple way to find files.
 
 ## Installation
