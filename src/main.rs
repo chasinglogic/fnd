@@ -3,6 +3,15 @@ extern crate clap;
 extern crate walkdir;
 extern crate ansi_term;
 
+use std::io::Write;
+
+macro_rules! println_stderr(
+    ($($arg:tt)*) => { {
+        let r = writeln!(&mut ::std::io::stderr(), $($arg)*);
+        r.expect("failed printing to stderr");
+    } }
+);
+
 use clap::{Arg, App, AppSettings};
 use regex::Regex;
 use walkdir::WalkDir;
@@ -28,6 +37,11 @@ fn find(rgx: Regex, dirs: Vec<PathBuf>, paint: bool) {
         let wkd = WalkDir::new(d);
 
         for f in wkd.into_iter() {
+            if f.is_err() {
+                println_stderr!("{}", f.err().unwrap());
+                continue;
+            }
+
             let entry = f.unwrap();
             let path = entry.path();
             let s = path.to_str().unwrap();
@@ -44,16 +58,15 @@ fn find(rgx: Regex, dirs: Vec<PathBuf>, paint: bool) {
 
 fn main() {
     let matches = App::new("fnd, a simpler way to find files")
-        .version("0.1.0")
+        .version("0.2.0")
         .author("Mathew Robinson <mrobinson@praelatus.io>")
         .about("Finds files")
         .setting(AppSettings::TrailingVarArg)
         .arg(Arg::with_name("color")
             .long("no_color")
             .short("nc")
-            .help("When specified will not highlight matches with ansi 
-                   term \
-                   color codes this is useful when piping output"))
+            .help("When specified will not highlight matches with ansi \
+                   term color codes this is useful when piping output"))
         .arg(Arg::with_name("REGEX")
             .required(true)
             .index(1)
