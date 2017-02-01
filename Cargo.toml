@@ -1,7 +1,14 @@
 [package]
 name = "fnd"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Mathew Robinson <mathew.robinson3114@gmail.com>"]
+description = "A simple way to find files."
+homepage = "https://github.com/chasinglogic/fnd"
+repository = "https://github.com/chasinglogic/fnd"
+readme = "README.md"
+keywords = ["cli", "command line", "find", "search", "files", "utility"]
+categories = ["command-line-interface", "command-line-utilities", "filesystem"]
+license = "Apache-2.0"
 
 [dependencies]
 regex = "0.2.1"
