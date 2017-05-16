@@ -34,9 +34,13 @@ fn find(rgx: Regex, dirs: Vec<PathBuf>, paint: bool) {
         let wkd = WalkDir::new(d);
 
         for f in wkd.into_iter() {
-            if f.is_err() {
-                println_stderr!("{}", f.err().unwrap());
-                continue;
+            let entry;
+            match f {
+                Ok(e) => entry = e,
+                Err(err) => {
+                    println_stderr!("{}", err);
+                    continue;
+                }
             }
 
             let entry = f.unwrap();
