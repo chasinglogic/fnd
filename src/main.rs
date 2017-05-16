@@ -43,14 +43,12 @@ fn find(rgx: Regex, dirs: Vec<PathBuf>, paint: bool) {
                 }
             }
 
-            let entry = f.unwrap();
-            let path = entry.path();
-            let s = path.to_str().unwrap();
+            // paths are ascii so should always be valid unicode
+            // the edge case is super rare so just ignore it
+            let s = &entry.path().to_string_lossy();
 
             if rgx.is_match(s) {
-                let canon_path = std::fs::canonicalize(path).unwrap();
-                let final_s = canon_path.to_str().unwrap();
-                let display = rgx.replace_all(final_s, replacement);
+                let display = rgx.replace_all(s, replacement);
                 println!("{}", display);
             }
         }
