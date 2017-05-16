@@ -78,7 +78,7 @@ fn main() {
     let search = matches.value_of("REGEX").unwrap();
     let dirs: Vec<&str> = matches.values_of("DIRS").unwrap().collect();
 
-    let mut d: Vec<PathBuf> = dirs.iter()
+    let d: Vec<PathBuf> = dirs.iter()
         .map(|x| {
             if *x == "." {
                 return env::current_dir().unwrap().to_path_buf();
@@ -88,14 +88,7 @@ fn main() {
         })
         .collect();
 
-    d = d.iter()
-        .map(|x| std::fs::canonicalize(x).unwrap())
-        .collect();
-
-    let mut re = "(?P<search>".to_string();
-    re.push_str(search);
-    re.push_str(")");
-
+    let re = format!("(?P<search>{})", search);
     let rgx = Regex::new(&re).unwrap();
 
     find(rgx, d, !matches.is_present("color"));
