@@ -22,16 +22,13 @@ use std::path::PathBuf;
 use std::ops::Deref;
 
 fn find(rgx: Regex, dirs: Vec<PathBuf>, paint: bool) {
-    let painter = Blue.paint("$search").to_string();
-    let replacement: &str;
-
-    if paint {
-        replacement = painter.deref()
+    let painter;
+    let replacement = if paint {
+        painter = Blue.paint("$search");
+        painter.deref()
     } else {
-        replacement = "$search"
-    }
-
-    let painter = Blue.paint("$search").to_string();
+        "$search"
+    };
 
     for d in dirs.iter() {
         let wkd = WalkDir::new(d);
