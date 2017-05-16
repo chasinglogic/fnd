@@ -21,18 +21,33 @@ cargo install --force fnd
 ## Usage
 
 ```
-fnd, a simpler way to find files 0.2.0
+fnd 0.3.0
 Mathew Robinson <mrobinson@praelatus.io>
-Finds files
+
+Find files by regex.
+
+Copyright (C) 2016 Mathew Robinson <mrobinson@praelatus.io>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the Apache Version 2.0 License
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+You should have recieved a copy of the license with this software if
+not you can view it here: https://www.apache.org/licenses/LICENSE-2.0
 
 USAGE:
-	fnd [FLAGS] <REGEX> [ARGS]
+	fnd [FLAGS] <REGEX> [DIRS]...
 
 FLAGS:
-	-n, --no_color    When specified will not highlight matches with ansi
-					  term color codes this is useful when piping output
-	-h, --help        Prints help information
-	-V, --version     Prints version information
+	-c, --color      When specified will highlight matches with ansi
+					 term color codes. Note that for large regexes or
+					 regexes which match a large portion of text this
+					 can negatively affect performance.
+	-h, --help       Prints help information
+	-V, --version    Prints version information
 
 ARGS:
 	<REGEX>      The REGEX to search for, defaults to fuzzy finding
