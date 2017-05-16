@@ -19,15 +19,14 @@ use ansi_term::Colour::Blue;
 
 use std::env;
 use std::path::PathBuf;
-use std::ops::Deref;
 
 fn find(rgx: Regex, dirs: Vec<PathBuf>, paint: bool) {
     let painter;
     let replacement = if paint {
         painter = Blue.paint("$search");
-        painter.deref()
+        format!("{}", painter)
     } else {
-        "$search"
+        "$search".to_string()
     };
 
     for d in dirs.iter() {
@@ -48,7 +47,7 @@ fn find(rgx: Regex, dirs: Vec<PathBuf>, paint: bool) {
             let s = &entry.path().to_string_lossy();
 
             if rgx.is_match(s) {
-                let display = rgx.replace_all(s, replacement);
+                let display = rgx.replace_all(s, replacement.as_str());
                 println!("{}", display);
             }
         }
