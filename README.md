@@ -7,15 +7,15 @@ The easiest (and currently only) way to install fnd is using cargo:
 ```bash
 cargo install fnd
 ```
- 
+
 ## Updating
-To update fnd (because of a lack of functionality in cargo 
-[#2082](https://github.com/rust-lang/cargo/issues/2082)) you need to uninstall
-then install it again:
+
+To update fnd (because of a lack of functionality in cargo
+[#2082](https://github.com/rust-lang/cargo/issues/2082)) you need to
+force a reinstall:
 
 ```bash
-cargo uninstall fnd
-cargo install fnd
+cargo install --force fnd
 ```
 
 ## Usage
@@ -26,20 +26,20 @@ Mathew Robinson <mrobinson@praelatus.io>
 Finds files
 
 USAGE:
-    fnd [FLAGS] <REGEX> [ARGS]
+	fnd [FLAGS] <REGEX> [ARGS]
 
 FLAGS:
-    -n, --no_color    When specified will not highlight matches with ansi
-                      term color codes this is useful when piping output
-    -h, --help        Prints help information
-    -V, --version     Prints version information
+	-n, --no_color    When specified will not highlight matches with ansi
+					  term color codes this is useful when piping output
+	-h, --help        Prints help information
+	-V, --version     Prints version information
 
 ARGS:
-    <REGEX>      The REGEX to search for, defaults to fuzzy finding
-    <DIRS>...    Where to search for SEARCH [default: .]
+	<REGEX>      The REGEX to search for, defaults to fuzzy finding
+	<DIRS>...    Where to search for SEARCH [default: .]
 ```
 
-### Quick Start 
+### Quick Start
 
 Assuming that your using bash and want to find all rust source files in your
 `~/Code` directory you simply run:
