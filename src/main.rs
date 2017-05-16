@@ -47,7 +47,12 @@ fn find(rgx: Regex, dirs: Vec<PathBuf>, paint: bool) {
             let s = &entry.path().to_string_lossy();
 
             if rgx.is_match(s) {
-                let display = rgx.replace_all(s, replacement.as_str());
+                let display = if paint {
+                    rgx.replace_all(s, replacement.as_str()).to_owned()
+                } else {
+                    s.to_owned()
+                };
+
                 println!("{}", display);
             }
         }
@@ -61,10 +66,12 @@ fn main() {
         .about("Finds files")
         .setting(AppSettings::TrailingVarArg)
         .arg(Arg::with_name("color")
-             .long("no_color")
-             .short("nc")
-             .help("When specified will not highlight matches with ansi \
-                    term color codes this is useful when piping output"))
+             .long("color")
+             .short("c")
+             .help("When specified will highlight matches with ansi \
+                    term color codes. Note that for large regexes or \
+                    regexes which match a large portion of text this \
+                    can negatively affect performance."))
         .arg(Arg::with_name("REGEX")
              .required(true)
              .index(1)
@@ -91,5 +98,5 @@ fn main() {
     let re = format!("(?P<search>{})", search);
     let rgx = Regex::new(&re).unwrap();
 
-    find(rgx, d, !matches.is_present("color"));
+    find(rgx, d, matches.is_present("color"));
 }
