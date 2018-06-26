@@ -82,7 +82,7 @@ where
 
 fn main() {
     let matches = App::new("fnd")
-        .version("0.3.1")
+        .version("0.3.2")
         .author("Mathew Robinson <mrobinson@praelatus.io>")
         .about(
             "
