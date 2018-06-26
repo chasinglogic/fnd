@@ -1,69 +1,91 @@
-extern crate regex;
-extern crate clap;
-extern crate walkdir;
 extern crate ansi_term;
+extern crate clap;
+extern crate regex;
+extern crate walkdir;
 
+use std::io;
 use std::io::Write;
+use std::process;
 
-macro_rules! println_stderr(
-    ($($arg:tt)*) => { {
-        let r = writeln!(&mut ::std::io::stderr(), $($arg)*);
-        r.expect("failed printing to stderr");
-    } }
-);
-
-use clap::{Arg, App, AppSettings};
-use regex::Regex;
-use walkdir::WalkDir;
 use ansi_term::Colour::Blue;
+use clap::{App, AppSettings, Arg};
+use regex::Regex;
+
+use walkdir::{DirEntry, WalkDir};
 
 use std::env;
 use std::path::PathBuf;
 
-fn find(rgx: Regex, dirs: Vec<PathBuf>, paint: bool) {
-    let painter;
-    let replacement = if paint {
-        painter = Blue.paint("$search");
-        format!("{}", painter)
-    } else {
-        "$search".to_string()
-    };
+fn is_hidden(entry: &DirEntry) -> bool {
+    entry
+        .file_name()
+        .to_str()
+        .map(|s| s.starts_with("."))
+        .unwrap_or(false)
+}
 
-    for d in dirs.iter() {
-        let wkd = WalkDir::new(d);
+fn find<T>(
+    rgx: Regex,
+    dirs: T,
+    ignore_hidden: bool,
+    replacement: &Option<String>,
+) -> Option<io::Error>
+where
+    T: IntoIterator<Item = PathBuf>,
+{
+    for dir in dirs {
+        let wkd: Box<Iterator<Item = walkdir::Result<DirEntry>>> = if ignore_hidden {
+            Box::new(
+                WalkDir::new(dir)
+                    .into_iter()
+                    .filter_entry(|d| !is_hidden(d)),
+            )
+        } else {
+            Box::new(WalkDir::new(dir).into_iter())
+        };
 
-        for f in wkd.into_iter() {
-            let entry;
-            match f {
-                Ok(e) => entry = e,
+        for file in wkd {
+            let entry = match file {
+                Ok(e) => e,
                 Err(err) => {
-                    println_stderr!("{}", err);
+                    let write_error = writeln!(&mut io::stderr(), "{}", err);
+                    if let Err(e) = write_error {
+                        return Some(e);
+                    }
+
                     continue;
                 }
-            }
+            };
 
-            // paths are ascii so should always be valid unicode
+            // paths are ascii or utf-8 so should always be valid unicode
             // the edge case is super rare so just ignore it
             let s = &entry.path().to_string_lossy();
-
             if rgx.is_match(s) {
-                let display = if paint {
-                    rgx.replace_all(s, replacement.as_str()).to_owned()
-                } else {
-                    s.to_owned()
-                };
+                let write_error = writeln!(
+                    &mut io::stdout(),
+                    "{}",
+                    match replacement {
+                        Some(repl) => rgx.replace_all(s, repl.as_str()).to_owned(),
+                        None => s.to_owned(),
+                    }
+                );
 
-                println!("{}", display);
+                if let Err(e) = write_error {
+                    return Some(e);
+                }
             }
         }
     }
+
+    None
 }
 
 fn main() {
     let matches = App::new("fnd")
         .version("0.3.0")
         .author("Mathew Robinson <mrobinson@praelatus.io>")
-        .about("
+        .about(
+            "
 Find files by regex.
 
 Copyright (C) 2016 Mathew Robinson <mrobinson@praelatus.io>
@@ -76,40 +98,60 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 You should have recieved a copy of the license with this software if
-not you can view it here: https://www.apache.org/licenses/LICENSE-2.0")
+not you can view it here: https://www.apache.org/licenses/LICENSE-2.0",
+        )
         .setting(AppSettings::TrailingVarArg)
-        .arg(Arg::with_name("color")
-             .long("color")
-             .short("c")
-             .help("When specified will highlight matches with ansi \
-                    term color codes. Note that for large regexes or \
-                    regexes which match a large portion of text this \
-                    can negatively affect performance."))
-        .arg(Arg::with_name("REGEX")
-             .required(true)
-             .index(1)
-             .help("The REGEX to search for, defaults to fuzzy finding"))
-        .arg(Arg::with_name("DIRS")
-            .multiple(true)
-            .help("Where to search for SEARCH")
-            .default_value("."))
+        .arg(Arg::with_name("color").long("color").short("c").help(
+            "When specified will highlight matches with ansi \
+             term color codes. Note that for large regexes or \
+             regexes which match a large portion of text this \
+             can negatively affect performance.",
+        ))
+        .arg(
+            Arg::with_name("REGEX")
+                .required(true)
+                .index(1)
+                .help("The REGEX to search for, defaults to fuzzy finding"),
+        )
+        .arg(
+            Arg::with_name("DIRS")
+                .multiple(true)
+                .help("Where to search for SEARCH")
+                .default_value("."),
+        )
+        .arg(
+            Arg::with_name("all")
+                .long("all")
+                .short("a")
+                .help("When specified recurse into hidden directories."),
+        )
         .get_matches();
 
     let search = matches.value_of("REGEX").unwrap();
-    let dirs: Vec<&str> = matches.values_of("DIRS").unwrap().collect();
+    let dirs = matches.values_of("DIRS").unwrap().map(|x| {
+        if x == "." {
+            return env::current_dir().unwrap().to_path_buf();
+        }
 
-    let d: Vec<PathBuf> = dirs.iter()
-        .map(|x| {
-            if *x == "." {
-                return env::current_dir().unwrap().to_path_buf();
-            }
-
-            PathBuf::from(x)
-        })
-        .collect();
+        PathBuf::from(x)
+    });
 
     let re = format!("(?P<search>{})", search);
     let rgx = Regex::new(&re).unwrap();
+    let painter;
+    let replacement = if matches.is_present("color") {
+        painter = Blue.paint("$search");
+        Some(format!("{}", painter))
+    } else {
+        None
+    };
 
-    find(rgx, d, matches.is_present("color"));
+    if let Some(ref err) = find(rgx, dirs, !matches.is_present("all"), &replacement) {
+        if err.kind() == io::ErrorKind::BrokenPipe {
+            process::exit(0)
+        } else {
+            println!("ERROR: {}", err);
+            process::exit(1)
+        }
+    }
 }
