@@ -88,7 +88,7 @@ fn main() {
             "
 Find files by regex.
 
-Copyright (C) 2016 Mathew Robinson <mrobinson@praelatus.io>
+Copyright (C) 2018 Mathew Robinson <mrobinson@praelatus.io>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the Apache Version 2.0 License
