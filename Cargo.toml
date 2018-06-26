@@ -1,6 +1,6 @@
 [package]
 name = "fnd"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Mathew Robinson <mrobinson@praelatus.io>"]
 description = "A simple way to find files."
 homepage = "https://github.com/chasinglogic/fnd"
