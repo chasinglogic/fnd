@@ -82,7 +82,7 @@ where
 
 fn main() {
     let matches = App::new("fnd")
-        .version("0.3.0")
+        .version("0.3.1")
         .author("Mathew Robinson <mrobinson@praelatus.io>")
         .about(
             "
@@ -108,6 +108,12 @@ not you can view it here: https://www.apache.org/licenses/LICENSE-2.0",
              can negatively affect performance.",
         ))
         .arg(
+            Arg::with_name("all")
+                .long("all")
+                .short("a")
+                .help("When specified recurse into hidden directories."),
+        )
+        .arg(
             Arg::with_name("REGEX")
                 .required(true)
                 .index(1)
@@ -118,12 +124,6 @@ not you can view it here: https://www.apache.org/licenses/LICENSE-2.0",
                 .multiple(true)
                 .help("Where to search for SEARCH")
                 .default_value("."),
-        )
-        .arg(
-            Arg::with_name("all")
-                .long("all")
-                .short("a")
-                .help("When specified recurse into hidden directories."),
         )
         .get_matches();
 
